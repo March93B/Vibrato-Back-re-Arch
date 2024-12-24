@@ -1,20 +1,16 @@
 package vibrato.vibrato.controllers;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.mockito.configuration.IMockitoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
-import vibrato.vibrato.entidades.Usuario;
 import vibrato.vibrato.repositories.EchoSystemRepository;
-import vibrato.vibrato.services.EchoSystemService;
+import vibrato.vibrato.services.EchoSystemServiceImpl;
 
-import javax.validation.constraints.AssertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class EchoSystemControllerTest {
 
     @MockBean
-    EchoSystemService echoSystemService;
+    EchoSystemServiceImpl echoSystemServiceImpl;
 
     @MockBean
     EchoSystemRepository echoSystemRepository;
@@ -38,7 +34,7 @@ class EchoSystemControllerTest {
 
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.echoSystemList()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.echoSystemList()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listaEchos();
 
@@ -49,7 +45,7 @@ class EchoSystemControllerTest {
     void testeListarMusicaCheio(){
         List<EchoSystem> musicas = List.of(new EchoSystem(), new EchoSystem());
 
-        Mockito.when(echoSystemService.echoSystemList()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.echoSystemList()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listaEchos();
 
@@ -61,7 +57,7 @@ class EchoSystemControllerTest {
     void testeListarTop5Vazio(){
         List<EchoSystem> musicas =  new ArrayList<>();
 
-        Mockito.when(echoSystemService.listarTop5GenericoPerfil()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.listarTop5GenericoPerfil()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarTop5();
 
@@ -73,7 +69,7 @@ class EchoSystemControllerTest {
     void testeListarTop5Cheia(){
         List<EchoSystem> musicas =  List.of(new EchoSystem(), new EchoSystem());
 
-        Mockito.when(echoSystemService.listarTop5GenericoPerfil()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.listarTop5GenericoPerfil()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarTop5();
 
@@ -85,7 +81,7 @@ class EchoSystemControllerTest {
     void testeListaExploreVazio(){
         List<DtoExplore> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.listarTudo()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.listarTudo()).thenReturn(musicas);
 
         ResponseEntity<List<DtoExplore>> resposta = echoSystemController.listarTodos();
 
@@ -97,7 +93,7 @@ class EchoSystemControllerTest {
         List<EchoSystem> musicas = new ArrayList<>();
         Integer id = 1;
 
-        Mockito.when(echoSystemService.getTop3EchoSystemByArtistaId(id)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.getTop3EchoSystemByArtistaId(id)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getTop3EchoSystemsByArtistaId(id);
 
@@ -108,7 +104,7 @@ class EchoSystemControllerTest {
     void testeBuscaPorIdParaDeletarMusicaComIdinexistente(){
         Integer id = 1;
 
-        Mockito.when(echoSystemService.buscarPorId(id)).thenReturn(Optional.empty());
+        Mockito.when(echoSystemServiceImpl.buscarPorId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Void> resposta = echoSystemController.deleteEcho(id);
 
@@ -119,7 +115,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroRockVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroRock()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroRock()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroRock();
 
@@ -130,7 +126,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroSertanejoVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroSertanejo()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroSertanejo()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroSertanejo();
 
@@ -141,7 +137,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroJRockVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroJrock()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroJrock()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroJrock();
 
@@ -152,7 +148,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroPagodeVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroPagode()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroPagode()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroPagode();
 
@@ -163,7 +159,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroKPopVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroKpop()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroKpop()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroKpop();
 
@@ -174,7 +170,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroEdmKawaiiVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroEdmKawaii()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroEdmKawaii()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroEdmKawaii();
 
@@ -185,7 +181,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroEdmVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroEdm()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroEdm()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroEdm();
 
@@ -196,7 +192,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroIndieVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroIndie()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroIndie()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroIndie();
 
@@ -207,7 +203,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroJazzVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroJazz()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroJazz()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroJazz();
 
@@ -218,7 +214,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroPopVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroPop()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroPop()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroPop();
 
@@ -229,7 +225,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroEletroSwingVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroEletroSwing()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroEletroSwing()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroEletroSwing();
 
@@ -240,7 +236,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroFuteCoreVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroFutureCore()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroFutureCore()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroFuteCore();
 
@@ -251,7 +247,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroHipHopRapVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroHipHopRap()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroHipHopRap()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroHipHopRap();
 
@@ -262,7 +258,7 @@ class EchoSystemControllerTest {
     void testeRespostaBuscaPorGeneroRbSoulVazio(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.findAllEchoSystemGeneroRbSoul()).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemGeneroRbSoul()).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.listarGeneroRbSoul();
 
@@ -273,7 +269,7 @@ class EchoSystemControllerTest {
     void testeRedirecionamentoComIdInexistente(){
         Integer id = 1;
 
-        Mockito.when(echoSystemService.buscarId(id)).thenReturn(Optional.empty());
+        Mockito.when(echoSystemServiceImpl.buscarId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<EchoSystem> resposta = echoSystemController.redirecionamentoPlays(id, new EchoSystem());
 
@@ -284,7 +280,7 @@ class EchoSystemControllerTest {
     void testeGet3MusicaByCurtidaComIdInexistente(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.curtidasDesc(1,0,3)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.curtidasDesc(1,0,3)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getTop3MusicasByCurtida(1);
 
@@ -295,7 +291,7 @@ class EchoSystemControllerTest {
     void testeGet3MusicaByRedirecionamentoComIdInexistente(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.redirecionamentoDesc(1,0,3)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.redirecionamentoDesc(1,0,3)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getTop3MusicasByRedirecionamento(1);
 
@@ -306,7 +302,7 @@ class EchoSystemControllerTest {
     void testeBuscarPorIdEchoLinkComIdInexistente(){
         Integer id = 1;
 
-        Mockito.when(echoSystemService.buscarId(id)).thenReturn(Optional.empty());
+        Mockito.when(echoSystemServiceImpl.buscarId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Optional<EchoSystem>> resposta = echoSystemController.buscarPorId(id);
 
@@ -317,7 +313,7 @@ class EchoSystemControllerTest {
     void testeGet3MusicaByPlayComIdExistente(){
         List<EchoSystem> musicas = new ArrayList<>();
 
-        Mockito.when(echoSystemService.streamDesc(1,0,3)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.streamDesc(1,0,3)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getTop3MusicasByPlay(1);
 
@@ -329,7 +325,7 @@ class EchoSystemControllerTest {
         List<EchoSystem> musicas = new ArrayList<>();
         String a = "abc";
 
-        Mockito.when(echoSystemService.visualizacaoDescUsername(a,0,3)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.visualizacaoDescUsername(a,0,3)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getTop3EchoSystemsByArtistaUsername(a);
 
@@ -340,7 +336,7 @@ class EchoSystemControllerTest {
     void testeGetAllEchoByIdComIdExistente(){
         List<EchoSystem> musicas = List.of(new EchoSystem());
 
-        Mockito.when(echoSystemService.findAllEchoSystemByArtistaId(1)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.findAllEchoSystemByArtistaId(1)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getAllEchoSystemByArtistaId(1);
 
@@ -351,7 +347,7 @@ class EchoSystemControllerTest {
     void testeGetTop3VizualizacaoByIdComIdExistente(){
         List<EchoSystem> musicas = List.of();
 
-        Mockito.when(echoSystemService.visualizacaoDesc(1,0,3)).thenReturn(musicas);
+        Mockito.when(echoSystemServiceImpl.visualizacaoDesc(1,0,3)).thenReturn(musicas);
 
         ResponseEntity<List<EchoSystem>> resposta = echoSystemController.getTop3EchoSystemByArtistaId(1);
 

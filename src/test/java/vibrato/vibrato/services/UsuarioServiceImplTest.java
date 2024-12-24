@@ -15,13 +15,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
-class UsuarioServiceTest {
+class UsuarioServiceImplTest {
 
     @Mock
     UsuarioRepository usuarioRepository;
 
     @InjectMocks
-    UsuarioService usuarioService;
+    UsuarioServiceImpl usuarioServiceImpl;
 
 
 
@@ -32,7 +32,7 @@ class UsuarioServiceTest {
 
         Mockito.when(usuarioRepository.findAll()).thenReturn(usuarios);
 
-        List<Usuario> resposta = usuarioService.listarUsuario();
+        List<Usuario> resposta = usuarioServiceImpl.listarUsuario();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -46,7 +46,7 @@ class UsuarioServiceTest {
 
         Mockito.when(usuarioRepository.findAll()).thenReturn(usuarios);
 
-        List<Usuario> resposta = usuarioService.listarUsuario();
+        List<Usuario> resposta = usuarioServiceImpl.listarUsuario();
 
         assertFalse(resposta.isEmpty());
         assertTrue(resposta.size() == 3);
@@ -59,7 +59,7 @@ class UsuarioServiceTest {
 
         Mockito.when(usuarioRepository.findById(id)).thenReturn(Optional.empty());
 
-        Optional<Usuario> resposta= usuarioService.buscarUsuarioPorId(id);
+        Optional<Usuario> resposta= usuarioServiceImpl.buscarUsuarioPorId(id);
 
         assertTrue(resposta.isEmpty());
     }

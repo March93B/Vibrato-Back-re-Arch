@@ -1,45 +1,26 @@
 package vibrato.vibrato.controllers;
 
-import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import vibrato.vibrato.dto.DtoLogin;
 import vibrato.vibrato.entidades.Artista;
-import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.entidades.Ouvinte;
 import vibrato.vibrato.entidades.Usuario;
-import vibrato.vibrato.repositories.UsuarioRepository;
 import vibrato.vibrato.security.Token;
 import vibrato.vibrato.security.TokenUtil;
 import vibrato.vibrato.services.UsuarioService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import org.springframework.http.ResponseEntity;
+import vibrato.vibrato.services.UsuarioServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import vibrato.vibrato.security.TokenUtil;
-import com.azure.storage.blob.BlobClient;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
 import java.io.*;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -47,8 +28,6 @@ import java.util.Optional;
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
     private UsuarioService usuarioService;
     public UsuarioController(UsuarioService usuarioService){
         this.usuarioService = usuarioService;
@@ -83,7 +62,7 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity<DtoLogin> logar(@Valid @RequestBody Usuario usuario) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(usuario.getEmail());
+        Optional<Usuario> usuarioOpt = usuarioService.findByEmail(usuario.getEmail());
         if (usuarioOpt.isEmpty()){
             return ResponseEntity.status(404).build();
         }
@@ -114,7 +93,7 @@ public class UsuarioController {
                 return ResponseEntity.status(404).build();
             }
             if (usuario.getUsername() != null && !usuario.getUsername().isEmpty()
-                    && usuarioRepository.existsByUsername(usuario.getUsername())) {
+                    && usuarioService.existsByUsername(usuario.getUsername())) {
                 return ResponseEntity.status(409).build();
             }
 
@@ -124,9 +103,9 @@ public class UsuarioController {
             if (imagem != null && !imagem.isEmpty()) {
                 byte[] imagemBytes = imagem.getBytes();
                 String directory = "imagens";
-                String archiveName = generateUniqueArchiveName(directory, imagem.getOriginalFilename());
+                String archiveName = usuarioService.generateUniqueArchiveName(directory, imagem.getOriginalFilename());
 
-                uploadToLocal(directory, archiveName,imagemBytes);
+                usuarioService.uploadToLocal(directory, archiveName,imagemBytes);
 
                 usuarioAtualizado.setBlob(archiveName);
             }
@@ -208,7 +187,7 @@ public class UsuarioController {
 
     @PatchMapping("/atualizar/perfil/email/{id}")
     public ResponseEntity<Usuario> atualizarEmail(@PathVariable Integer id, @RequestBody Usuario u){
-        if (usuarioRepository.existsByEmail(u.getEmail())) {
+        if (usuarioService.existsByEmail(u.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um usuário com esse email");
         }
         if (usuarioService.buscarId(id).isEmpty()) {
@@ -238,49 +217,6 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
-    public void uploadToLocal(String directoryPath, String fileName, byte[] data) throws IOException {
-        File directory = new File(directoryPath);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-        File file = new File(directoryPath + File.separator + fileName);
-
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            fos.write(data);
-            fos.flush();
-        }
-
-    }
-
-    public String generateUniqueArchiveName(String directory, String originalFilename) {
-        int counter = 1;
-        String archiveName = originalFilename;
-        String extension = "";
-        int dotIndex = originalFilename.lastIndexOf(".");
-        if (dotIndex > 0) {
-            extension = originalFilename.substring(dotIndex);
-            archiveName = originalFilename.substring(0, dotIndex);
-        }
-
-        String newBlobName = archiveName + extension;
-
-        while (imageExists(directory, newBlobName)) {
-            newBlobName = archiveName + " "+counter + extension;
-            counter++;
-        }
-
-        return newBlobName;
-    }
-    public boolean imageExists(String directory, String fileName) {
-        try {
-            File file = new File(directory + File.separator + fileName);
-            return file.exists();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
 }
 

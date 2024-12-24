@@ -1,9 +1,6 @@
 package vibrato.vibrato.controllers;
 
-import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,10 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.services.EchoSystemService;
-import com.azure.storage.blob.BlobClient;
+import vibrato.vibrato.services.EchoSystemServiceImpl;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,8 +25,8 @@ public class EchoSystemController {
 
     private final EchoSystemService echoSystemService;
 
-    public EchoSystemController( EchoSystemService echoSystemService) {
-            this.echoSystemService = echoSystemService;
+    public EchoSystemController( EchoSystemService echoSystemServiceImpl) {
+            this.echoSystemService = echoSystemServiceImpl;
     }
     @GetMapping("/buscar-por-texto/{termo}")
     public ResponseEntity<List<EchoSystem>> buscarPorTexto(@PathVariable String termo) {
@@ -184,7 +180,7 @@ public class EchoSystemController {
         }
 
         echoSystemService.atualizarPilha(musicas);
-        return ResponseEntity.status(200).body(new ArrayList<>(echoSystemService.pilha));
+        return ResponseEntity.status(200).body(new ArrayList<>(EchoSystemService.pilha));
     }
 
 
@@ -208,7 +204,7 @@ public class EchoSystemController {
         if (!echoSystems.isEmpty()) {
             echoSystemService.atualizarFila(echoSystems);
         }
-        return ResponseEntity.ok(new ArrayList<>(echoSystemService.fila));
+        return ResponseEntity.ok(new ArrayList<>(EchoSystemService.fila));
 
     }
 
@@ -498,7 +494,7 @@ public class EchoSystemController {
             bufferedWriter.newLine();
             int contaRegDadosGravados = 0;
 
-            for (EchoSystem echoSystem : echoSystemService.fila) {
+            for (EchoSystem echoSystem : EchoSystemService.fila) {
                 contaRegDadosGravados++;
                 String linha = String.format("%-8d%-30s%-19d%-12d%-12d%-11d",
                         echoSystem.getIdEcho(),

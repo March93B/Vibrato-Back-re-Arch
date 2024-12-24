@@ -7,22 +7,20 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vibrato.vibrato.entidades.EchoSystem;
-import vibrato.vibrato.entidades.Usuario;
 import vibrato.vibrato.repositories.EchoSystemRepository;
-import vibrato.vibrato.repositories.UsuarioRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
-class EchoSystemServiceTest {
+class EchoSystemServiceImplTest {
 
     @Mock
     EchoSystemRepository echoSystemRepository;
 
     @InjectMocks
-    EchoSystemService echoSystemService;
+    EchoSystemServiceImpl echoSystemServiceImpl;
 
     @Test
     void testeFindAllEchoSystemGeneroRock() {
@@ -30,7 +28,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroRock()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroRock();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroRock();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -42,7 +40,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroPop()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroPop();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroPop();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -54,7 +52,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroFutureCore()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroFutureCore();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroFutureCore();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -66,7 +64,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroKpop()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroKpop();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroKpop();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -78,7 +76,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroJrock()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroJrock();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroJrock();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -90,7 +88,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroHipHopRap()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroHipHopRap();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroHipHopRap();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -102,7 +100,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroRbSoul()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroRbSoul();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroRbSoul();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -114,7 +112,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroIndie()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroIndie();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroIndie();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -126,7 +124,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroEdm()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroEdm();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroEdm();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -138,7 +136,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroEdmKawaii()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroEdmKawaii();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroEdmKawaii();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -150,7 +148,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroJazz()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroJazz();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroJazz();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -162,7 +160,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroSertanejo()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroSertanejo();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroSertanejo();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -174,7 +172,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroEletroSwing()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroEletroSwing();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroEletroSwing();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);
@@ -186,7 +184,7 @@ class EchoSystemServiceTest {
 
         Mockito.when(echoSystemRepository.buscarPorGeneroPagode()).thenReturn(musicas);
 
-        List<EchoSystem> resposta = echoSystemService.findAllEchoSystemGeneroPagode();
+        List<EchoSystem> resposta = echoSystemServiceImpl.findAllEchoSystemGeneroPagode();
 
         assertTrue(resposta.isEmpty());
         assertTrue(resposta.size() == 0);

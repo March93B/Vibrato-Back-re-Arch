@@ -1,8 +1,6 @@
 package vibrato.vibrato.controllers;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +10,7 @@ import vibrato.vibrato.entidades.Artista;
 import vibrato.vibrato.entidades.Ouvinte;
 import vibrato.vibrato.entidades.Usuario;
 import vibrato.vibrato.repositories.UsuarioRepository;
-import vibrato.vibrato.services.UsuarioService;
+import vibrato.vibrato.services.UsuarioServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UsuarioControllerTest {
 
     @MockBean
-    UsuarioService usuarioService;
+    UsuarioServiceImpl usuarioServiceImpl;
 
     @MockBean
     UsuarioRepository usuarioRepository;
@@ -36,7 +34,7 @@ class UsuarioControllerTest {
     void testeListagemUsuariosVazia() {
         List<Usuario> usuarios = new ArrayList<>();
 
-        Mockito.when(usuarioService.listarUsuario()).thenReturn(usuarios);
+        Mockito.when(usuarioServiceImpl.listarUsuario()).thenReturn(usuarios);
 
         ResponseEntity<List<Usuario>> resposta = controller.listaUsuarios();
 
@@ -47,7 +45,7 @@ class UsuarioControllerTest {
     void testeListagemUsuariosCheia() {
         List<Usuario> usuarios = List.of(new Usuario(), new Usuario());
 
-        Mockito.when(usuarioService.listarUsuario()).thenReturn(usuarios);
+        Mockito.when(usuarioServiceImpl.listarUsuario()).thenReturn(usuarios);
 
         ResponseEntity<List<Usuario>> resposta = controller.listaUsuarios();
 
@@ -60,7 +58,7 @@ class UsuarioControllerTest {
 
         Integer id = 1;
 
-        Mockito.when(usuarioService.buscarId(id)).thenReturn(Optional.empty());
+        Mockito.when(usuarioServiceImpl.buscarId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Optional<Usuario>> resposta = controller.buscarPorId(id);
 
@@ -72,7 +70,7 @@ class UsuarioControllerTest {
 
         String username = "abc";
 
-        Mockito.when(usuarioService.buscarUsuarioPorUser(username)).thenReturn(Optional.empty());
+        Mockito.when(usuarioServiceImpl.buscarUsuarioPorUser(username)).thenReturn(Optional.empty());
 
         ResponseEntity<Optional<Usuario>> resposta = controller.buscarPorUser(username);
 
@@ -83,7 +81,7 @@ class UsuarioControllerTest {
     void testeAtualizarSenhaComIdInexistente(){
         Integer id = 1;
 
-        Mockito.when(usuarioService.buscarId(id)).thenReturn(Optional.empty());
+        Mockito.when(usuarioServiceImpl.buscarId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Usuario> resposta = controller.atualizarSenha(id, new Usuario());
 
@@ -94,7 +92,7 @@ class UsuarioControllerTest {
     void testeAtualizarEmailComIdInexistente(){
         Integer id = 1;
 
-        Mockito.when(usuarioService.buscarId(id)).thenReturn(Optional.empty());
+        Mockito.when(usuarioServiceImpl.buscarId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Usuario> resposta = controller.atualizarEmail(id, new Usuario());
 
@@ -105,7 +103,7 @@ class UsuarioControllerTest {
     void testeDeletarUsuarioComIdInexistente(){
         Integer id = 1;
 
-        Mockito.when(usuarioService.buscarId(id)).thenReturn(Optional.empty());
+        Mockito.when(usuarioServiceImpl.buscarId(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Void> resposta = controller.deletarConta(id);
 
@@ -115,7 +113,7 @@ class UsuarioControllerTest {
     @Test
     void testeCriarOuvinte(){
 
-        Mockito.when(usuarioService.criarOuvinte(new Ouvinte())).thenReturn(new Ouvinte());
+        Mockito.when(usuarioServiceImpl.criarOuvinte(new Ouvinte())).thenReturn(new Ouvinte());
 
         ResponseEntity<Usuario> resposta = controller.criarOuvinte(new Ouvinte());
 
@@ -125,7 +123,7 @@ class UsuarioControllerTest {
     @Test
     void testeCriarArtista(){
 
-        Mockito.when(usuarioService.criarArtista(new Artista())).thenReturn(new Artista());
+        Mockito.when(usuarioServiceImpl.criarArtista(new Artista())).thenReturn(new Artista());
 
         ResponseEntity<Usuario> resposta = controller.criarArtista(new Artista());
 
@@ -135,7 +133,7 @@ class UsuarioControllerTest {
     @Test
     void testeAtualizarUsuario(){
 
-        Mockito.when(usuarioService.editarUsuario(new Usuario())).thenReturn(new Usuario());
+        Mockito.when(usuarioServiceImpl.editarUsuario(new Usuario())).thenReturn(new Usuario());
 
         ResponseEntity<Usuario> resposta = controller.editarUsuario(new Usuario());
 
@@ -145,7 +143,7 @@ class UsuarioControllerTest {
     @Test
     void testeDeletarUsuario(){
 
-        Mockito.when(usuarioService.excluirUsuario(1)).thenReturn(null);
+        Mockito.when(usuarioServiceImpl.excluirUsuario(1)).thenReturn(null);
 
         ResponseEntity<?> resposta = controller.excluirUsuario(1);
 
