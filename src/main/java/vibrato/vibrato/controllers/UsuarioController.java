@@ -36,9 +36,7 @@ import com.azure.storage.blob.BlobClient;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,12 +123,12 @@ public class UsuarioController {
 
             if (imagem != null && !imagem.isEmpty()) {
                 byte[] imagemBytes = imagem.getBytes();
-                String containerName = "imagens";
-                String blobName = generateUniqueBlobName(containerName, imagem.getOriginalFilename());
+                String directory = "imagens";
+                String archiveName = generateUniqueArchiveName(directory, imagem.getOriginalFilename());
 
-                uploadImage(imagemBytes, containerName, blobName);
+                uploadToLocal(directory, archiveName,imagemBytes);
 
-                usuarioAtualizado.setBlob(blobName);
+                usuarioAtualizado.setBlob(archiveName);
             }
 
             if (usuario.getNome() != null && !usuario.getNome().isEmpty()) {
@@ -186,39 +184,7 @@ public class UsuarioController {
 
         return ResponseEntity.status(400).build();
     }
-    private String generateUniqueBlobName(String containerName, String originalFilename) {
 
-        int counter = 1;
-        String blobName = originalFilename;
-        String extension = "";
-        int dotIndex = originalFilename.lastIndexOf(".");
-        if (dotIndex > 0) {
-            extension = originalFilename.substring(dotIndex);
-            blobName = originalFilename.substring(0, dotIndex);
-        }
-
-        String newBlobName = blobName + extension;
-
-        while (blobExists(containerName, newBlobName)) {
-            newBlobName = blobName + counter + extension;
-            counter++;
-        }
-
-        return newBlobName;
-    }
-
-    private boolean blobExists(String containerName, String blobName) {
-        String connectionString ="DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net\n" +
-                "\n";
-
-        BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(connectionString)
-                .containerName(containerName)
-                .buildClient();
-
-        BlobClient blobClient = containerClient.getBlobClient(blobName);
-        return blobClient.exists();
-    }
 
     @GetMapping("/perfil/{id}")
     public ResponseEntity<Optional<Usuario>> buscarPorId(@PathVariable Integer id) {
@@ -239,23 +205,7 @@ public class UsuarioController {
 
         return ResponseEntity.status(200).body(busca);
     }
-    private void uploadImage(byte[] imageBytes, String containerName, String blobName) {
-        String connectionString ="DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net\n" +
-                "\n";
 
-        BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(connectionString)
-                .containerName(containerName)
-                .buildClient();
-
-        BlobClient blobClient = containerClient.getBlobClient(blobName);
-
-        try (InputStream inputStream = new ByteArrayInputStream(imageBytes)) {
-            blobClient.upload(inputStream, imageBytes.length);
-        } catch (Exception e) {
-            System.out.println("Erro no upload da imagem");
-        }
-    }
     @PatchMapping("/atualizar/perfil/email/{id}")
     public ResponseEntity<Usuario> atualizarEmail(@PathVariable Integer id, @RequestBody Usuario u){
         if (usuarioRepository.existsByEmail(u.getEmail())) {
@@ -287,7 +237,52 @@ public class UsuarioController {
         usuarioService.deletarConta(id);
         return ResponseEntity.ok().build();
     }
+
+    public void uploadToLocal(String directoryPath, String fileName, byte[] data) throws IOException {
+        File directory = new File(directoryPath);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        File file = new File(directoryPath + File.separator + fileName);
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(data);
+            fos.flush();
+        }
+
     }
+
+    public String generateUniqueArchiveName(String directory, String originalFilename) {
+        int counter = 1;
+        String archiveName = originalFilename;
+        String extension = "";
+        int dotIndex = originalFilename.lastIndexOf(".");
+        if (dotIndex > 0) {
+            extension = originalFilename.substring(dotIndex);
+            archiveName = originalFilename.substring(0, dotIndex);
+        }
+
+        String newBlobName = archiveName + extension;
+
+        while (imageExists(directory, newBlobName)) {
+            newBlobName = archiveName + " "+counter + extension;
+            counter++;
+        }
+
+        return newBlobName;
+    }
+    public boolean imageExists(String directory, String fileName) {
+        try {
+            File file = new File(directory + File.separator + fileName);
+            return file.exists();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+}
 
 
 

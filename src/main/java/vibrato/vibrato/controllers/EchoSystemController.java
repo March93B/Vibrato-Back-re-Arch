@@ -2,17 +2,15 @@ package vibrato.vibrato.controllers;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
-import com.azure.storage.blob.models.ParallelTransferOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.services.EchoSystemService;
@@ -23,21 +21,16 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @RestController
 @CrossOrigin("*")
 @RequestMapping("/echo")
 public class EchoSystemController {
 
-    private EchoSystemService echoSystemService;
-    private Stack<EchoSystem> pilha = new Stack<>();
-    private Queue<EchoSystem> fila = new LinkedList<>();
+    private final EchoSystemService echoSystemService;
 
-    public EchoSystemController(EchoSystemService echoSystemService) {
-        this.echoSystemService = echoSystemService;
-
+    public EchoSystemController( EchoSystemService echoSystemService) {
+            this.echoSystemService = echoSystemService;
     }
     @GetMapping("/buscar-por-texto/{termo}")
     public ResponseEntity<List<EchoSystem>> buscarPorTexto(@PathVariable String termo) {
@@ -62,12 +55,12 @@ public class EchoSystemController {
             if (!imagem.isEmpty()) {
                 try {
                     byte[] imagemBytes = imagem.getBytes();
-                    String containerName = "imagens";
-                    String blobName = generateUniqueBlobName(containerName, imagem.getOriginalFilename());
+                    String directory = "imagens";
+                    String imageName = echoSystemService.generateUniqueArchiveName(directory, imagem.getOriginalFilename());
 
-                    uploadImage(imagemBytes, containerName, blobName);
+                    echoSystemService.uploadToLocal(directory,imageName , imagemBytes);
 
-                    novoEcho.setBlob(blobName);
+                    novoEcho.setBlob(imageName);
 
                     return ResponseEntity.status(201).body(echoSystemService.addMusica(novoEcho));
                 } catch (IOException e) {
@@ -190,20 +183,11 @@ public class EchoSystemController {
             return ResponseEntity.status(204).build();
         }
 
-        atualizarPilha(musicas);
-
-        return ResponseEntity.status(200).body(new ArrayList<>(pilha));
+        echoSystemService.atualizarPilha(musicas);
+        return ResponseEntity.status(200).body(new ArrayList<>(echoSystemService.pilha));
     }
 
-    private void atualizarPilha(List<EchoSystem> musicas) {
-        pilha.clear();
-        int tamanhoMaximo = 5;
-        int tamanhoAtual = Math.min(musicas.size(), tamanhoMaximo);
 
-        for (int i = 0; i < tamanhoAtual; i++) {
-            pilha.push(musicas.get(i));
-        }
-    }
     @GetMapping("/artista/{userId}")
     public ResponseEntity<List<EchoSystem>> getAllEchoSystemByArtistaId(@PathVariable Integer userId) {
         List<EchoSystem> echoSystems = echoSystemService.findAllEchoSystemByArtistaId(userId);
@@ -221,104 +205,11 @@ public class EchoSystemController {
     @GetMapping("/visu100/{userId}")
     public ResponseEntity<List<EchoSystem>> get100EchoSystemByArtistaId(@PathVariable Integer userId) {
         List<EchoSystem> echoSystems = echoSystemService.visualizacaoDesc(userId, 0, 100);
-
         if (!echoSystems.isEmpty()) {
-            atualizarFila(echoSystems);
+            echoSystemService.atualizarFila(echoSystems);
         }
+        return ResponseEntity.ok(new ArrayList<>(echoSystemService.fila));
 
-        return ResponseEntity.ok(new ArrayList<>(fila));
-    }
-
-    private void atualizarFila(List<EchoSystem> echoSystems) {
-        fila.clear();
-        int tamanhoMaximo = 100;
-        int tamanhoAtual = Math.min(echoSystems.size(), tamanhoMaximo);
-
-        for (int i = 0; i < tamanhoAtual; i++) {
-            fila.offer(echoSystems.get(i));
-        }
-    }
-
-    @GetMapping("/visu-csv/{userId}")
-    public ResponseEntity<byte[]> get100EchoSystemByArtistaIdCsv(@PathVariable Integer userId) {
-        List<EchoSystem> echoSystems = echoSystemService.visualizacaoDesc(userId, 0, 100);
-
-        if (!echoSystems.isEmpty()) {
-            atualizarFila(echoSystems);
-            byte[] csvBytes = exportarCSV(echoSystems);
-
-            String containerName = "arquivos";
-            String blobName = generateUniqueBlobName3(containerName, "metricas"+userId+".csv");
-            uploadBlob2(containerName, blobName, csvBytes);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentDispositionFormData("attachment", "metricas"+userId+".csv");
-            headers.setContentLength(csvBytes.length);
-
-            return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
-        }
-
-        return ResponseEntity.noContent().build();
-    }
-
-    private byte[] exportarCSV(List<EchoSystem> echoSystems) {
-        StringBuilder csvBuilder = new StringBuilder();
-        csvBuilder.append("id;titulo;visu;share;redirec;plays\n");
-
-        for (EchoSystem echoSystem : echoSystems) {
-            csvBuilder.append(String.format("%d;%s;%d;%d;%d;%d\n", echoSystem.getIdEcho(), echoSystem.getTituloMusica(), echoSystem.getVisualizacao(), echoSystem.getCurtidas(), echoSystem.getRedirecionamento(), echoSystem.getStreams()));
-        }
-
-        return csvBuilder.toString().getBytes(Charset.forName("UTF-8"));
-    }
-
-    private void uploadBlob2(String containerName, String blobName, byte[] data) {
-        String connectionString = "DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net";
-        BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(connectionString)
-                .containerName(containerName)
-                .buildClient();
-
-        BlobClient blobClient = containerClient.getBlobClient(blobName);
-
-        blobClient.upload(new ByteArrayInputStream(data), data.length);
-    }
-
-    private String generateUniqueBlobName3(String containerName, String originalFilename) {
-        int counter = 1;
-        String blobName = originalFilename;
-        String extension = "";
-        int dotIndex = originalFilename.lastIndexOf(".");
-        if (dotIndex > 0) {
-            extension = originalFilename.substring(dotIndex);
-            blobName = originalFilename.substring(0, dotIndex);
-        }
-
-        String newBlobName = blobName + extension;
-
-        while (blobExists2(containerName, newBlobName)) {
-            newBlobName = blobName + " "+counter + extension;
-            counter++;
-        }
-
-        return newBlobName;
-    }
-
-    private boolean blobExists2(String containerName, String blobName) {
-        try {
-            String connectionString = "DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net";
-            BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                    .connectionString(connectionString)
-                    .containerName(containerName)
-                    .buildClient();
-
-            BlobClient blobClient = containerClient.getBlobClient(blobName);
-            return blobClient.exists();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     @GetMapping("/visuu/{username}")
@@ -376,7 +267,6 @@ public class EchoSystemController {
     }
 
 
-
     @GetMapping("/last3/{userId}")
     public ResponseEntity<List<EchoSystem>> getTop3EchoSystemsByArtistaId(@PathVariable Integer userId) {
         List<EchoSystem> echoSystems = echoSystemService.getTop3EchoSystemByArtistaId(userId);
@@ -386,6 +276,7 @@ public class EchoSystemController {
             return new ResponseEntity<>(echoSystems, HttpStatus.OK);
         }
     }
+
     @DeleteMapping("/deletar/echo/{id}")
     public ResponseEntity<Void> deleteEcho(@PathVariable Integer id) {
         Optional<EchoSystem> echoSystemExistente = echoSystemService.buscarId(id);
@@ -393,7 +284,6 @@ public class EchoSystemController {
         if (echoSystemExistente.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
         try {
             echoSystemService.deletarEchoSystem(echoSystemExistente.get().getIdEcho());
             return ResponseEntity.noContent().build();
@@ -565,66 +455,34 @@ public class EchoSystemController {
         return ResponseEntity.status(200).body(echoSystemService.findAllEchoSystemGeneroPagode());
     }
 
+    @GetMapping("/visu-csv/{userId}")
+    public ResponseEntity<byte[]> get100EchoSystemByArtistaIdCsv(@PathVariable Integer userId) throws IOException {
+        List<EchoSystem> echoSystems = echoSystemService.visualizacaoDesc(userId, 0, 100);
 
-    private String generateUniqueBlobName(String containerName, String originalFilename) {
+        if (!echoSystems.isEmpty()) {
+            echoSystemService.atualizarFila(echoSystems);
+            byte[] csvBytes = echoSystemService.exportarCSV(echoSystems);
 
-        int counter = 1;
-        String blobName = originalFilename;
-        String extension = "";
-        int dotIndex = originalFilename.lastIndexOf(".");
-        if (dotIndex > 0) {
-            extension = originalFilename.substring(dotIndex);
-            blobName = originalFilename.substring(0, dotIndex);
+            String directory = "arquivos";
+            String archiveName = echoSystemService.generateUniqueArchiveName(directory, "metricas"+userId+".csv");
+            echoSystemService.uploadToLocal(directory, archiveName, csvBytes);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/csv"));
+            headers.setContentDispositionFormData("attachment", "metricas"+userId+".csv");
+            headers.setContentLength(csvBytes.length);
+
+            return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
         }
 
-        String newBlobName = blobName + extension;
-
-        while (blobExists(containerName, newBlobName)) {
-            newBlobName = blobName + counter + extension;
-            counter++;
-        }
-
-        return newBlobName;
+        return ResponseEntity.noContent().build();
     }
-
-    private boolean blobExists(String containerName, String blobName) {
-        String connectionString ="DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net\n" +
-                "\n";
-
-        BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(connectionString)
-                .containerName(containerName)
-                .buildClient();
-
-        BlobClient blobClient = containerClient.getBlobClient(blobName);
-        return blobClient.exists();
-    }
-
-
-    private void uploadImage(byte[] imageBytes, String containerName, String blobName) {
-        String connectionString ="DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net\n" +
-                "\n";
-
-        BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(connectionString)
-                .containerName(containerName)
-                .buildClient();
-
-        BlobClient blobClient = containerClient.getBlobClient(blobName);
-
-        try (InputStream inputStream = new ByteArrayInputStream(imageBytes)) {
-            blobClient.upload(inputStream, imageBytes.length);
-        } catch (Exception e) {
-            System.out.println("Erro no upload da imagem");
-        }
-    }
-
     @GetMapping("/gerarArquivoTxt/{userId}")
     public ResponseEntity<ByteArrayResource> gerarArquivoTxt(@PathVariable Integer userId) {
         List<EchoSystem> echoSystems = echoSystemService.visualizacaoDesc(userId, 0, 100);
 
         if (!echoSystems.isEmpty()) {
-            atualizarFila(echoSystems);
+            echoSystemService.atualizarFila(echoSystems);
         }
 
         try {
@@ -640,7 +498,7 @@ public class EchoSystemController {
             bufferedWriter.newLine();
             int contaRegDadosGravados = 0;
 
-            for (EchoSystem echoSystem : fila) {
+            for (EchoSystem echoSystem : echoSystemService.fila) {
                 contaRegDadosGravados++;
                 String linha = String.format("%-8d%-30s%-19d%-12d%-12d%-11d",
                         echoSystem.getIdEcho(),
@@ -667,17 +525,12 @@ public class EchoSystemController {
             headers.setContentType(MediaType.TEXT_PLAIN);
             headers.setContentDispositionFormData("attachment", "arquivo.txt");
 
-            String connectionString = "DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net";
-            String containerName = "arquivos";
-            String blobName = generateUniqueBlobName2(containerName, "arquivo"+userId+".txt");
+            String directory = "arquivos";
+            String archiveName = echoSystemService.generateUniqueArchiveName(directory,"arquivo"+userId+".txt");
 
-            BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                    .connectionString(connectionString)
-                    .containerName(containerName)
-                    .buildClient();
+            echoSystemService.uploadToLocal(directory, archiveName, fileContent);
 
-            BlobClient blobClient = containerClient.getBlobClient(blobName);
-            blobClient.upload(new ByteArrayInputStream(fileContent), fileContent.length);
+
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -688,64 +541,5 @@ public class EchoSystemController {
         }
     }
 
-    private String generateUniqueBlobName2(String containerName, String originalFilename) {
-        int counter = 1;
-        String blobName = originalFilename;
-        String extension = "";
-        int dotIndex = originalFilename.lastIndexOf(".");
-        if (dotIndex > 0) {
-            extension = originalFilename.substring(dotIndex);
-            blobName = originalFilename.substring(0, dotIndex);
-        }
-
-        String newBlobName = blobName + extension;
-
-        String connectionString = "DefaultEndpointsProtocol=https;AccountName=vibratosimages;AccountKey=QEtX6NEo/Lu/QyyEXLDuAIRoRfME/Vh1uykrf8oqYgDhhgiPJ+0MgbLd2KDxaPkE9k7N8S8ZRp7u+AStWkuV2A==;EndpointSuffix=core.windows.net";
-        BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(connectionString)
-                .containerName(containerName)
-                .buildClient();
-
-        BlobClient blobClient = containerClient.getBlobClient(newBlobName);
-
-        while (blobClient.exists()) {
-            newBlobName = blobName + " "+counter + extension;
-            counter++;
-
-            blobClient = containerClient.getBlobClient(newBlobName);
-        }
-
-        return newBlobName;
-    }
-
-    @GetMapping("/lerArquivoTxt")
-    public ResponseEntity<String> lerArquivoTxt() {
-        try {
-            String nomeArquivo = "caminho/para/o/arquivo.txt";
-
-            FileReader fileReader = new FileReader(nomeArquivo);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-            String linha;
-            while ((linha = bufferedReader.readLine()) != null) {
-                String idEcho = linha.substring(0, 11);
-                String tituloMusica = linha.substring(11, 40);
-                String visualizacoes = linha.substring(41, 54);
-                String plays = linha.substring(55, 69);
-                String redirect = linha.substring(70, 84);
-                String share = linha.substring(85, 101);
-
-                System.out.printf("idEcho=%s, tituloMusica=%s, visualizacoes=%s,plays=%s,redirect=%s,share=%s\n", idEcho, tituloMusica, visualizacoes,plays
-                        ,redirect,share
-                );
-            }
-
-            bufferedReader.close();
-
-            return ResponseEntity.ok("Arquivo TXT lido com sucesso!");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao ler o arquivo TXT");
-        }
-    }
 }
 

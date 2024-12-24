@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: vibrato.vibrato.controllers.UsuarioControllerTest
+-------------------------------------------------------------------------------
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 32.984 s - in vibrato.vibrato.controllers.UsuarioControllerTest

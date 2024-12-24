@@ -9,17 +9,39 @@ import vibrato.vibrato.entidades.Usuario;
 import vibrato.vibrato.repositories.EchoSystemRepository;
 
 import java.awt.print.Pageable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.*;
 
 @Service
 public class EchoSystemService {
 
     private EchoSystemRepository echoSystemRepository;
+    public Stack<EchoSystem> pilha = new Stack<>();
+    public Queue<EchoSystem> fila = new LinkedList<>();
 
     public EchoSystemService(EchoSystemRepository echoSystemRepository){
         this.echoSystemRepository = echoSystemRepository;
+    }
+    public void atualizarFila(List<EchoSystem> echoSystems) {
+        fila.clear();
+        int tamanhoMaximo = 100;
+        int tamanhoAtual = Math.min(echoSystems.size(), tamanhoMaximo);
+
+        for (int i = 0; i < tamanhoAtual; i++) {
+            fila.offer(echoSystems.get(i));
+        }
+    }
+    public void atualizarPilha(List<EchoSystem> musicas) {
+        pilha.clear();
+        int tamanhoMaximo = 5;
+        int tamanhoAtual = Math.min(musicas.size(), tamanhoMaximo);
+
+        for (int i = 0; i < tamanhoAtual; i++) {
+            pilha.push(musicas.get(i));
+        }
     }
 
     public EchoSystem addMusica(EchoSystem novaMusica){
@@ -189,6 +211,63 @@ public class EchoSystemService {
     }
 
 
+    public void uploadToLocal(String directoryPath, String fileName, byte[] data) throws IOException {
+        File directory = new File(directoryPath);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        File file = new File(directoryPath + File.separator + fileName);
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(data);
+            fos.flush();
+        }
+
+        System.out.println("Arquivo salvo com sucesso em: " + file.getAbsolutePath());
+    }
+
+
+    public String generateUniqueArchiveName(String directory, String originalFilename) {
+        int counter = 1;
+        String archiveName = originalFilename;
+        String extension = "";
+        int dotIndex = originalFilename.lastIndexOf(".");
+        if (dotIndex > 0) {
+            extension = originalFilename.substring(dotIndex);
+            archiveName = originalFilename.substring(0, dotIndex);
+        }
+
+        String newBlobName = archiveName + extension;
+
+        while (imageExists(directory, newBlobName)) {
+            newBlobName = archiveName + " "+counter + extension;
+            counter++;
+        }
+
+        return newBlobName;
+    }
+    public boolean imageExists(String directory, String fileName) {
+        try {
+            File file = new File(directory + File.separator + fileName);
+            return file.exists();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public byte[] exportarCSV(List<EchoSystem> echoSystems) {
+        StringBuilder csvBuilder = new StringBuilder();
+        csvBuilder.append("id;titulo;visu;share;redirec;plays\n");
+
+        for (EchoSystem echoSystem : echoSystems) {
+            csvBuilder.append(String.format("%d;%s;%d;%d;%d;%d\n", echoSystem.getIdEcho(), echoSystem.getTituloMusica(), echoSystem.getVisualizacao(), echoSystem.getCurtidas(), echoSystem.getRedirecionamento(), echoSystem.getStreams()));
+        }
+
+        return csvBuilder.toString().getBytes(Charset.forName("UTF-8"));
+    }
 
 }
 

@@ -54,6 +54,7 @@ public class Usuario {
     private String novaSenha;
     public Usuario() {
     }
+
     @JsonProperty("tipoUsuario")
     public String getTipoUsuario() {
         DiscriminatorValue annotation = this.getClass().getAnnotation(DiscriminatorValue.class);
