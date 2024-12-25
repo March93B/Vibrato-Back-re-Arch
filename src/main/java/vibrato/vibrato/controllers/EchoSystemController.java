@@ -174,11 +174,9 @@ public class EchoSystemController {
     @GetMapping("/top5")
     public ResponseEntity<List<EchoSystem>> listarTop5() {
         List<EchoSystem> musicas = echoSystemService.listarTop5GenericoPerfil();
-
         if (musicas.isEmpty()) {
             return ResponseEntity.status(204).build();
         }
-
         echoSystemService.atualizarPilha(musicas);
         return ResponseEntity.status(200).body(new ArrayList<>(EchoSystemService.pilha));
     }
