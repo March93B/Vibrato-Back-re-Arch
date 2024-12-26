@@ -1,5 +1,6 @@
 package vibrato.vibrato.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -7,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import vibrato.vibrato.entidades.Artista;
 import vibrato.vibrato.entidades.Ouvinte;
@@ -182,5 +184,85 @@ public class UsuarioServiceImpl implements UsuarioService {
         } else {
             throw new FileNotFoundException("Arquivo não encontrado: " + fileName);
         }
+    }
+    public ResponseEntity<Usuario> atualizarImg(MultipartFile imagem,String novoUserJson){
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Usuario usuario = objectMapper.readValue(novoUserJson, Usuario.class);
+
+            Optional<Usuario> usuarioExistente = buscarUsuarioPorId(usuario.getIdUsuario());
+            if (!usuarioExistente.isPresent()) {
+                return ResponseEntity.status(404).build();
+            }
+            if (usuario.getUsername() != null && !usuario.getUsername().isEmpty()
+                    && existsByUsername(usuario.getUsername())) {
+                return ResponseEntity.status(409).build();
+            }
+
+
+            Usuario usuarioAtualizado = usuarioExistente.get();
+
+            if (imagem != null && !imagem.isEmpty()) {
+                byte[] imagemBytes = imagem.getBytes();
+                String directory = "imagens";
+                String archiveName = generateUniqueArchiveName(directory, imagem.getOriginalFilename());
+
+                uploadToLocal(directory, archiveName,imagemBytes);
+
+                usuarioAtualizado.setBlob(archiveName);
+            }
+
+            if (usuario.getNome() != null && !usuario.getNome().isEmpty()) {
+                usuarioAtualizado.setNome(usuario.getNome());
+            }
+
+            if (usuario.getEmail() != null && !usuario.getEmail().isEmpty()) {
+                usuarioAtualizado.setEmail(usuario.getEmail());
+            }
+
+            if (usuario.getSenha() != null && !usuario.getSenha().isEmpty()) {
+                usuarioAtualizado.setNovaSenha(usuario.getSenha());
+            } else {
+                usuarioAtualizado.setNovaSenha(usuarioAtualizado.getSenha());
+            }
+
+            if (usuario.getUsername() != null && !usuario.getUsername().isEmpty()) {
+                usuarioAtualizado.setUsername(usuario.getUsername());
+            }
+
+            if (usuario.getTwitter() != null && !usuario.getTwitter().isEmpty()) {
+                usuarioAtualizado.setTwitter(usuario.getTwitter());
+            }
+
+            if (usuario.getInstagram() != null && !usuario.getInstagram().isEmpty()) {
+                usuarioAtualizado.setInstagram(usuario.getInstagram());
+            }
+
+            if (usuario.getSpotify() != null && !usuario.getSpotify().isEmpty()) {
+                usuarioAtualizado.setSpotify(usuario.getSpotify());
+            }
+
+            if (usuario.getSoundcloud() != null && !usuario.getSoundcloud().isEmpty()) {
+                usuarioAtualizado.setSoundcloud(usuario.getSoundcloud());
+            }
+
+            if (usuario.getGenero() != null && !usuario.getGenero().isEmpty()) {
+                usuarioAtualizado.setGenero(usuario.getGenero());
+            }
+
+            if (usuario.getBiografia() != null && !usuario.getBiografia().isEmpty()) {
+                usuarioAtualizado.setBiografia(usuario.getBiografia());
+            }
+            if (usuario.getVisualizacao() != null) {
+                usuarioAtualizado.setVisualizacao(usuario.getVisualizacao());
+            }
+
+
+            return ResponseEntity.status(201).body(editarUsuario(usuarioAtualizado));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return ResponseEntity.status(400).build();
     }
 }

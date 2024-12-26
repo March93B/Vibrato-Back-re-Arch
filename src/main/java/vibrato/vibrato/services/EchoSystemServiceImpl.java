@@ -1,23 +1,26 @@
 package vibrato.vibrato.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.repositories.EchoSystemRepository;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -282,6 +285,118 @@ public class EchoSystemServiceImpl implements EchoSystemService {
                     .body(resource);
         } else {
             throw new FileNotFoundException("Arquivo não encontrado: " + fileName);
+        }
+    }
+
+    public ResponseEntity<EchoSystem> createEcho(MultipartFile imagem, String  novoEchoJson){
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            EchoSystem novoEcho = objectMapper.readValue(novoEchoJson, EchoSystem.class);
+
+            if (!imagem.isEmpty()) {
+                try {
+                    byte[] imagemBytes = imagem.getBytes();
+                    String directory = "imagens";
+                    String imageName = generateUniqueArchiveName(directory, imagem.getOriginalFilename());
+
+                  uploadToLocal(directory,imageName , imagemBytes);
+
+                    novoEcho.setBlob(imageName);
+
+                    return ResponseEntity.status(201).body(addMusica(novoEcho));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return ResponseEntity.status(400).build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return ResponseEntity.status(400).build();
+    }
+    public ResponseEntity<byte[]> getByArtistaCsv(Integer userId) throws IOException {
+        List<EchoSystem> echoSystems =visualizacaoDesc(userId, 0, 100);
+
+        if (!echoSystems.isEmpty()) {
+            atualizarFila(echoSystems);
+            byte[] csvBytes = exportarCSV(echoSystems);
+
+            String directory = "arquivos";
+            String archiveName = generateUniqueArchiveName(directory, "metricas"+userId+".csv");
+            uploadToLocal(directory, archiveName, csvBytes);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/csv"));
+            headers.setContentDispositionFormData("attachment", "metricas"+userId+".csv");
+            headers.setContentLength(csvBytes.length);
+
+            return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+    public ResponseEntity<ByteArrayResource> gerarTxt(Integer userId){
+        List<EchoSystem> echoSystems = visualizacaoDesc(userId, 0, 100);
+
+        if (!echoSystems.isEmpty()) {
+            atualizarFila(echoSystems);
+        }
+
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+
+            String header = String.format("%-10s%-30s%-19s%-12s%-12s%-11s", "idEcho", "tituloMusica", "visualizacoes", "plays", "redirect", "share");
+            bufferedWriter.write("00 Métricas" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) + "00 05");
+
+            bufferedWriter.newLine();
+
+            bufferedWriter.write(header);
+            bufferedWriter.newLine();
+            int contaRegDadosGravados = 0;
+
+            for (EchoSystem echoSystem : EchoSystemService.fila) {
+                contaRegDadosGravados++;
+                String linha = String.format("%-8d%-30s%-19d%-12d%-12d%-11d",
+                        echoSystem.getIdEcho(),
+                        echoSystem.getTituloMusica(),
+                        echoSystem.getVisualizacao(),
+                        echoSystem.getStreams(),
+                        echoSystem.getRedirecionamento(),
+                        echoSystem.getCurtidas()
+
+                );
+
+                bufferedWriter.write("02" + linha);
+                bufferedWriter.newLine();
+            }
+
+            String trailer = "03Total de músicas do artista ";
+            bufferedWriter.write(trailer + contaRegDadosGravados);
+
+            bufferedWriter.close();
+
+            byte[] fileContent = outputStream.toByteArray();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_PLAIN);
+            headers.setContentDispositionFormData("attachment", "arquivo.txt");
+
+            String directory = "arquivos";
+            String archiveName = generateUniqueArchiveName(directory,"arquivo"+userId+".txt");
+
+            uploadToLocal(directory, archiveName, fileContent);
+
+
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(fileContent.length)
+                    .body(new ByteArrayResource(fileContent));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

@@ -44,32 +44,7 @@ public class EchoSystemController {
             @RequestParam("imagem" ) MultipartFile imagem,
             @RequestPart("novoEcho") String novoEchoJson
     ) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            EchoSystem novoEcho = objectMapper.readValue(novoEchoJson, EchoSystem.class);
-
-            if (!imagem.isEmpty()) {
-                try {
-                    byte[] imagemBytes = imagem.getBytes();
-                    String directory = "imagens";
-                    String imageName = echoSystemService.generateUniqueArchiveName(directory, imagem.getOriginalFilename());
-
-                    echoSystemService.uploadToLocal(directory,imageName , imagemBytes);
-
-                    novoEcho.setBlob(imageName);
-
-                    return ResponseEntity.status(201).body(echoSystemService.addMusica(novoEcho));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return ResponseEntity.status(400).build();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return ResponseEntity.status(400).build();
+        return echoSystemService.createEcho(imagem, novoEchoJson);
     }
 
 
@@ -451,88 +426,12 @@ public class EchoSystemController {
 
     @GetMapping("/visu-csv/{userId}")
     public ResponseEntity<byte[]> get100EchoSystemByArtistaIdCsv(@PathVariable Integer userId) throws IOException {
-        List<EchoSystem> echoSystems = echoSystemService.visualizacaoDesc(userId, 0, 100);
-
-        if (!echoSystems.isEmpty()) {
-            echoSystemService.atualizarFila(echoSystems);
-            byte[] csvBytes = echoSystemService.exportarCSV(echoSystems);
-
-            String directory = "arquivos";
-            String archiveName = echoSystemService.generateUniqueArchiveName(directory, "metricas"+userId+".csv");
-            echoSystemService.uploadToLocal(directory, archiveName, csvBytes);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentDispositionFormData("attachment", "metricas"+userId+".csv");
-            headers.setContentLength(csvBytes.length);
-
-            return new ResponseEntity<>(csvBytes, headers, HttpStatus.OK);
-        }
-
-        return ResponseEntity.noContent().build();
+    return echoSystemService.getByArtistaCsv(userId);
     }
+
     @GetMapping("/gerarArquivoTxt/{userId}")
     public ResponseEntity<ByteArrayResource> gerarArquivoTxt(@PathVariable Integer userId) {
-        List<EchoSystem> echoSystems = echoSystemService.visualizacaoDesc(userId, 0, 100);
-
-        if (!echoSystems.isEmpty()) {
-            echoSystemService.atualizarFila(echoSystems);
-        }
-
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-
-            String header = String.format("%-10s%-30s%-19s%-12s%-12s%-11s", "idEcho", "tituloMusica", "visualizacoes", "plays", "redirect", "share");
-            bufferedWriter.write("00 Métricas" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) + "00 05");
-
-            bufferedWriter.newLine();
-
-            bufferedWriter.write(header);
-            bufferedWriter.newLine();
-            int contaRegDadosGravados = 0;
-
-            for (EchoSystem echoSystem : EchoSystemService.fila) {
-                contaRegDadosGravados++;
-                String linha = String.format("%-8d%-30s%-19d%-12d%-12d%-11d",
-                        echoSystem.getIdEcho(),
-                        echoSystem.getTituloMusica(),
-                        echoSystem.getVisualizacao(),
-                        echoSystem.getStreams(),
-                        echoSystem.getRedirecionamento(),
-                        echoSystem.getCurtidas()
-
-                );
-
-                bufferedWriter.write("02" + linha);
-                bufferedWriter.newLine();
-            }
-
-            String trailer = "03Total de músicas do artista ";
-            bufferedWriter.write(trailer + contaRegDadosGravados);
-
-            bufferedWriter.close();
-
-            byte[] fileContent = outputStream.toByteArray();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.TEXT_PLAIN);
-            headers.setContentDispositionFormData("attachment", "arquivo.txt");
-
-            String directory = "arquivos";
-            String archiveName = echoSystemService.generateUniqueArchiveName(directory,"arquivo"+userId+".txt");
-
-            echoSystemService.uploadToLocal(directory, archiveName, fileContent);
-
-
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentLength(fileContent.length)
-                    .body(new ByteArrayResource(fileContent));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return echoSystemService.gerarTxt(userId);
     }
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {

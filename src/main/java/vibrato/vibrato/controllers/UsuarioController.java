@@ -82,86 +82,10 @@ public class UsuarioController {
     @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Usuario> atualizarUsuario(
             @RequestParam(value = "imagem", required = false) MultipartFile imagem,
-            @RequestPart("usuario") String novoUserJson
-    ) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            Usuario usuario = objectMapper.readValue(novoUserJson, Usuario.class);
+            @RequestPart("usuario") String novoUserJson)
+    {
 
-            Optional<Usuario> usuarioExistente = usuarioService.buscarUsuarioPorId(usuario.getIdUsuario());
-            if (!usuarioExistente.isPresent()) {
-                return ResponseEntity.status(404).build();
-            }
-            if (usuario.getUsername() != null && !usuario.getUsername().isEmpty()
-                    && usuarioService.existsByUsername(usuario.getUsername())) {
-                return ResponseEntity.status(409).build();
-            }
-
-
-            Usuario usuarioAtualizado = usuarioExistente.get();
-
-            if (imagem != null && !imagem.isEmpty()) {
-                byte[] imagemBytes = imagem.getBytes();
-                String directory = "imagens";
-                String archiveName = usuarioService.generateUniqueArchiveName(directory, imagem.getOriginalFilename());
-
-                usuarioService.uploadToLocal(directory, archiveName,imagemBytes);
-
-                usuarioAtualizado.setBlob(archiveName);
-            }
-
-            if (usuario.getNome() != null && !usuario.getNome().isEmpty()) {
-                usuarioAtualizado.setNome(usuario.getNome());
-            }
-
-            if (usuario.getEmail() != null && !usuario.getEmail().isEmpty()) {
-                usuarioAtualizado.setEmail(usuario.getEmail());
-            }
-
-            if (usuario.getSenha() != null && !usuario.getSenha().isEmpty()) {
-                usuarioAtualizado.setNovaSenha(usuario.getSenha());
-            } else {
-                usuarioAtualizado.setNovaSenha(usuarioAtualizado.getSenha());
-            }
-
-            if (usuario.getUsername() != null && !usuario.getUsername().isEmpty()) {
-                usuarioAtualizado.setUsername(usuario.getUsername());
-            }
-
-            if (usuario.getTwitter() != null && !usuario.getTwitter().isEmpty()) {
-                usuarioAtualizado.setTwitter(usuario.getTwitter());
-            }
-
-            if (usuario.getInstagram() != null && !usuario.getInstagram().isEmpty()) {
-                usuarioAtualizado.setInstagram(usuario.getInstagram());
-            }
-
-            if (usuario.getSpotify() != null && !usuario.getSpotify().isEmpty()) {
-                usuarioAtualizado.setSpotify(usuario.getSpotify());
-            }
-
-            if (usuario.getSoundcloud() != null && !usuario.getSoundcloud().isEmpty()) {
-                usuarioAtualizado.setSoundcloud(usuario.getSoundcloud());
-            }
-
-            if (usuario.getGenero() != null && !usuario.getGenero().isEmpty()) {
-                usuarioAtualizado.setGenero(usuario.getGenero());
-            }
-
-            if (usuario.getBiografia() != null && !usuario.getBiografia().isEmpty()) {
-                usuarioAtualizado.setBiografia(usuario.getBiografia());
-            }
-            if (usuario.getVisualizacao() != null) {
-                usuarioAtualizado.setVisualizacao(usuario.getVisualizacao());
-            }
-
-
-            return ResponseEntity.status(201).body(usuarioService.editarUsuario(usuarioAtualizado));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return ResponseEntity.status(400).build();
+        return usuarioService.atualizarImg(imagem, novoUserJson);
     }
 
 

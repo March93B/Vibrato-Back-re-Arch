@@ -1,7 +1,9 @@
 package vibrato.vibrato.services;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 
@@ -49,5 +51,7 @@ public interface EchoSystemService {
     Stack<EchoSystem> pilha = new Stack<>();
     Queue<EchoSystem> fila = new LinkedList<>();
     ResponseEntity<Resource> getFileAsResource(String directoryPath, String fileName) throws IOException;
-
+    ResponseEntity<EchoSystem> createEcho(MultipartFile imagem, String  novoEchoJson);
+    ResponseEntity<byte[]> getByArtistaCsv(Integer userId) throws IOException;
+    ResponseEntity<ByteArrayResource> gerarTxt(Integer userId);
 }
