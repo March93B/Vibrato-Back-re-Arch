@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: vibrato.vibrato.controllers.EchoSystemControllerTest
--------------------------------------------------------------------------------
-Tests run: 29, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.911 s - in vibrato.vibrato.controllers.EchoSystemControllerTest
