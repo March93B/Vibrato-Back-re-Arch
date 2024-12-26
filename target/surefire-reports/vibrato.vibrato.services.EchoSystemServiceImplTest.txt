@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: vibrato.vibrato.services.EchoSystemServiceImplTest
+-------------------------------------------------------------------------------
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s - in vibrato.vibrato.services.EchoSystemServiceImplTest

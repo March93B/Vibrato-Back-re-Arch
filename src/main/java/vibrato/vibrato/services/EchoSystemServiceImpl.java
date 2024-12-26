@@ -1,15 +1,23 @@
 package vibrato.vibrato.services;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.repositories.EchoSystemRepository;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
@@ -263,7 +271,19 @@ public class EchoSystemServiceImpl implements EchoSystemService {
 
         return csvBuilder.toString().getBytes(Charset.forName("UTF-8"));
     }
+    public ResponseEntity<Resource> getFileAsResource(String directoryPath, String fileName) throws IOException {
+        Path path = Paths.get(directoryPath).resolve(fileName).normalize();
+        Resource resource = new UrlResource(path.toUri());
 
+        if (resource.exists() && resource.isReadable()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } else {
+            throw new FileNotFoundException("Arquivo não encontrado: " + fileName);
+        }
+    }
 }
 
 

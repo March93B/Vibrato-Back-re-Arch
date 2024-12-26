@@ -2,6 +2,7 @@ package vibrato.vibrato.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.services.EchoSystemService;
-import vibrato.vibrato.services.EchoSystemServiceImpl;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -534,6 +534,13 @@ public class EchoSystemController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
+    @GetMapping("/{fileName}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+        try {
+            return echoSystemService.getFileAsResource("imagens", fileName);
+        } catch (IOException e) {
+            return ResponseEntity.status(404).body(null);
+        }
+    }
 }
 

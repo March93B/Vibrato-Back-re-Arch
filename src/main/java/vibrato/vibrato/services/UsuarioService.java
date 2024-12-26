@@ -1,5 +1,7 @@
 package vibrato.vibrato.services;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import vibrato.vibrato.entidades.Artista;
 import vibrato.vibrato.entidades.EchoSystem;
 import vibrato.vibrato.entidades.Ouvinte;
@@ -30,5 +32,5 @@ public interface UsuarioService {
     void deletarConta(Integer id);
     void uploadToLocal(String directoryPath, String fileName, byte[] data) throws IOException;
     String generateUniqueArchiveName(String directory, String originalFilename);
-
+    ResponseEntity<Resource> getFileAsResource(String directoryPath, String fileName) throws IOException;
 }

@@ -1,0 +1,5 @@
+vibrato\vibrato\controllers\UsuarioControllerTest.class
+vibrato\vibrato\services\UsuarioServiceImplTest.class
+vibrato\vibrato\controllers\EchoSystemControllerTest.class
+vibrato\vibrato\services\EchoSystemServiceImplTest.class
+vibrato\vibrato\VibratoApplicationTests.class

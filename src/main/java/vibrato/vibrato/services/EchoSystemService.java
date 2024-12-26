@@ -1,5 +1,7 @@
 package vibrato.vibrato.services;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import vibrato.vibrato.dto.DtoExplore;
 import vibrato.vibrato.entidades.EchoSystem;
 
@@ -46,5 +48,6 @@ public interface EchoSystemService {
     byte[] exportarCSV(List<EchoSystem> echoSystems);
     Stack<EchoSystem> pilha = new Stack<>();
     Queue<EchoSystem> fila = new LinkedList<>();
+    ResponseEntity<Resource> getFileAsResource(String directoryPath, String fileName) throws IOException;
 
 }
